@@ -29,7 +29,7 @@ public class Router {
                         .body(service.findNormalList(), String.class))
                 .GET("/load", request -> {
                     service.loadData();
-                    return ServerResponse.ok().body(BodyInserters.fromObject("Load Data Completed"));
+                    return ServerResponse.ok().body(BodyInserters.fromValue("Load Data Completed"));
                 }).build();
 
     }
