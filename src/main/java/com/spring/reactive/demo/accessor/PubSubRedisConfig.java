@@ -1,10 +1,12 @@
 package com.spring.reactive.demo.accessor;
 
 import java.time.Duration;
+import com.spring.reactive.demo.config.DemoDesignConf;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -16,7 +18,10 @@ import io.lettuce.core.TimeoutOptions;
 import io.lettuce.core.resource.ClientResources;
 import io.lettuce.core.resource.DefaultClientResources;
 import io.lettuce.core.resource.Delay;
+import lombok.extern.slf4j.Slf4j;
 
+@Configuration
+@Slf4j
 public class PubSubRedisConfig {
 
   @Bean(destroyMethod = "shutdown") // shutdown callback
@@ -26,22 +31,23 @@ public class PubSubRedisConfig {
         .build();
   }
 
-  @Bean
+  @Bean(name = "pubsubRedisStandaloneConfig")
   @Primary
-  public RedisStandaloneConfiguration redisStandaloneConfiguration() {
-    String redisHost = "localhost";
-    int port = 6379;
-    return new RedisStandaloneConfiguration(redisHost, port);
+  public RedisStandaloneConfiguration redisStandaloneConfiguration(DemoDesignConf conf) {
+    String redisHost = conf.getRedisHost();
+    int redisPort = conf.getRedisPort();
+    log.info("redis host : " + redisHost , "redis port :" + redisPort + " connected");
+    return new RedisStandaloneConfiguration(redisHost, redisPort);
   }
 
-  @Bean
+  @Bean(name = "pubsubRedisTimeoutOptions")
   @Primary
   public TimeoutOptions timeoutOptions() {
     return TimeoutOptions.builder().connectionTimeout().fixedTimeout(Duration.ofSeconds(1000))
         .build();
   }
 
-  @Bean
+  @Bean(name = "pubsubRedisClientOptions")
   @Primary
   public ClientOptions clientOptions(TimeoutOptions timeoutOptions) {
     return ClientOptions.builder()
@@ -49,7 +55,7 @@ public class PubSubRedisConfig {
         .timeoutOptions(timeoutOptions).build();
   }
 
-  @Bean
+  @Bean(name = "pubsubRedisGenericObjectPoolConfig")
   @Primary
   public GenericObjectPoolConfig<?> genericObjectPoolConfig() {
     GenericObjectPoolConfig<?> config = new GenericObjectPoolConfig<>();
@@ -57,7 +63,7 @@ public class PubSubRedisConfig {
     return config;
   }
 
-  @Bean
+  @Bean(name = "pubsubRedisLettucePoolConfig")
   @Primary
   LettucePoolingClientConfiguration lettucePoolConfig(ClientOptions options,
       ClientResources clientResources, GenericObjectPoolConfig<?> genericObjectPoolConfig) {

@@ -1,17 +1,12 @@
 package com.spring.reactive.demo.accessor;
 
-import java.time.Duration;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
-import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
-import org.springframework.data.redis.connection.stream.StreamOffset;
-import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,13 +16,15 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 
 public abstract class RedisAccessor {
 
+
   private StringRedisTemplate stringRedisTemplate;
 
   private RedisTemplate<String, Object> redisTemplate;
 
   GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
 
-  public RedisAccessor(RedisTemplate<String, Object> redisTemplate, StringRedisTemplate stringRedisTemplate) {
+  public RedisAccessor(RedisTemplate<String, Object> redisTemplate,
+      @Qualifier("pubsubStringRedisTemplate") StringRedisTemplate stringRedisTemplate) {
     this.stringRedisTemplate = stringRedisTemplate;
     this.redisTemplate = redisTemplate;
   }
@@ -50,19 +47,22 @@ public abstract class RedisAccessor {
    */
   public RecordId xAdd(String streamName, Object value) {
     byte[] serializedValue = serializer.serialize(value);
-    ObjectRecord<String, Object> record = StreamRecords.newRecord().in(streamName).ofObject(serializedValue);
+    ObjectRecord<String, Object> record =
+        StreamRecords.newRecord().in(streamName).ofObject(serializedValue);
     return redisTemplate.opsForStream().add(record);
   }
 
-  public <T> List<T> xRead(String streamName, String groupName, String consumerName, Duration toMillSec,
-      long maxOfMessages, Class<T> cls) {
-    StreamOperations<String, Object, Object> ops = redisTemplate.opsForStream();
-    List<ObjectRecord<String, Object>> message = ops.read(Object.class, Consumer.from(groupName, consumerName),
-        StreamReadOptions.empty().block(toMillSec).count(maxOfMessages),
-        StreamOffset.create(streamName, ReadOffset.lastConsumed()));
+  // public <T> List<T> xRead(String streamName, String groupName, String consumerName,
+  // Duration toMillSec, long maxOfMessages, Class<T> cls) {
+  // StreamOperations<String, Object, Object> ops = redisTemplate.opsForStream();
+  // List<ObjectRecord<String, Object>> message =
+  // ops.read(Object.class, Consumer.from(groupName, consumerName),
+  // StreamReadOptions.empty().block(toMillSec).count(maxOfMessages),
+  // StreamOffset.create(streamName, ReadOffset.lastConsumed()));
 
-    return message.stream().map(r -> serializer.deserialize((byte[]) r.getValue(), cls)).collect(Collectors.toList());
-  }
+  // return message.stream().map(r -> serializer.deserialize((byte[]) r.getValue(), cls))
+  // .collect(Collectors.toList());
+  // }
 
   public XInfoConsumers xConsumers(String groupName, String consumer) {
     return redisTemplate.opsForStream().consumers(groupName, consumer);
