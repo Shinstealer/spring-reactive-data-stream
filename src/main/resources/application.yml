@@ -3,11 +3,5 @@ spring:
     banner-mode: off
     
 ---
-spring:
-  redis:
-    host: localhost
-    port: 6379
-
----
 server:
   shutdown: graceful

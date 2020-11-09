@@ -1,0 +1,11 @@
+demo:
+  service:
+      netty:
+          url: "https://localhost"
+          port: 8082
+      redis:
+        stream:
+          host: localhost
+          port: 6379
+
+    
