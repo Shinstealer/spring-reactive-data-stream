@@ -7,7 +7,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
+import com.spring.reactive.demo.accessor.StreamRedis;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -27,10 +27,10 @@ public class BasicService {
     private static final AtomicInteger count = new AtomicInteger(0);
 
     public BasicService(ReactiveRedisConnectionFactory factory,
-            ReactiveRedisOperations<String, String> reactiveRedisOperations, StringRedisTemplate stringRedisTemplate) {
+            ReactiveRedisOperations<String, String> reactiveRedisOperations, StringRedisTemplate stringRedisTemplate , StreamRedis streamRedis) {
         this.factory = factory;
         this.reactiveRedisOperations = reactiveRedisOperations;
-        this.stringRedisTemplate = stringRedisTemplate;
+        this.stringRedisTemplate = streamRedis.getStringRedisStream();
 
     }
 
